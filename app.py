@@ -3,7 +3,6 @@
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
 from flask import Flask
 
 from controllers.cafeteria_controller import cafeteria_api
@@ -12,7 +11,26 @@ from utils.api_response import api_response
 
 
 BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(BASE_DIR / ".env")
+
+
+def load_env_file(path):
+    """Load simple KEY=VALUE entries from a .env file without extra dependencies."""
+    if not path.is_file():
+        return
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].strip()
+        key, separator, value = line.partition("=")
+        if separator and key.strip():
+            value = value.strip().strip("\"'")
+            os.environ.setdefault(key.strip(), value)
+
+
+load_env_file(BASE_DIR / ".env")
 
 
 def create_app():
